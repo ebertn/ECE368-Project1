@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<math.h>
+#include<project1.h>
 
 int main(int argc, char *argv[]){
 	
@@ -7,9 +8,10 @@ int main(int argc, char *argv[]){
 	{
 		return EXIT_FAILURE;
 	}
-	int arrive_time;
-	int priority; 
-	int service_time;
+
+	Task FEL = NULL;
+
+
 	
     
 	return EXIT_SUCCESS;

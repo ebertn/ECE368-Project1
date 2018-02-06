@@ -11,15 +11,31 @@ double generate_rate(double InputRate) //InputRate is Lambda or Mu
 }
 
 
-void read_input(int argc, char* argv[], int *service_time, int*arrival_time, int* priority)
+void read_input(FILE *fp, Task **queue )
 {
-	if(argc == 4) 
+	fseek(fp, 0L, SEEK_SET);//file starts at the beginning; 
+
+	while(fp != EOF)
 	{
-		//MODE 1
+		//create TASK node 
+		if(fp != '\n')
+		{
+			Task *new_task = malloc(sizeof(*new_task);//get memory for new task node	
+			Task *queue_push(queue, new_task);//push new task node onto the queue
+			fscanf("%lf%lf%lf", &new_task.arrival_time, &new_task.priority, &new_task.service_time);//scan in data
+		}	
 
 	}
-	if(argc == 2)
-	{
-		//MODE 2
-	}
 
+}
+
+//start an arrival process
+void proccess_task(&queue, int *line, *time, int *server)
+{
+	while(queue != NULL);
+	{
+		if(*server != 1)
+		{
+						  
+		
+	}		
