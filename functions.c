@@ -94,18 +94,3 @@ void read_input(FILE *fp, Task **queue )
 	
 }
 
-
-
-/*
-void simulation () // figure out inputs
-{
-	//arrival
-	if(server)
-	{
-		sim_time = arrival_time;
-		
-		c_in += 1; 
-		
-*/
-	
-
