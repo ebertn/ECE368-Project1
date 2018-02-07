@@ -4,33 +4,51 @@
 #include "project1.h"
 
 int main(){
+    printf("Started\n");
 	// Test queue_pop method
     Task* first = malloc(sizeof(Task));
-    first->val = 1;
+    first->priority = 1;
     Task* second = malloc(sizeof(Task));
-    second->val = 2;
+    second->priority = 0;
     Task* third = malloc(sizeof(Task));
-    third->val = 3;
+    third->priority = 1;
 
-    first->next = second;
-    second->next = third;
-    third->next = NULL;
+    Task* list = NULL;
 
-    Task* popped = queue_pop(&first);
+    enqueue(&list, first);
+    print_queue(stdout, list);
+    enqueue(&list, second);
+    print_queue(stdout, list);
+    enqueue(&list, third);
 
-    print_queue(stdout, first);
-    print_queue(stdout, popped);
+    //enqueue(&first, first);
+    // enqueue(&first, second);
+    // enqueue(&first, third);
 
-    queue_push(&first, popped);
-    print_queue(stdout, popped);
+    // first->next = second;
+    // second->next = third;
+    // third->next = NULL;
+
+    //print_queue(stdout, *loop);
+
+    //Task* popped = queue_pop(&first);
+
+    print_queue(stdout, list);
+    //print_queue(stdout, popped);
+
+    //queue_push(&first, popped);
+    //print_queue(stdout, popped);
 
     int rand1 = generate_rate(0.5);
-    int rand = generate_rate(0.5);
-    
-    printf("%f ", rand);
 
-    free_queue(first);
-    free_queue(popped);
+    for(int i = 0; i < 1; i++){
+        int rand = generate_rate(0.001);
+
+        printf("\n%d\n", rand);
+    }
+
+    free_queue(list);
+    //free_queue(popped);
 
     return EXIT_SUCCESS;
 }
