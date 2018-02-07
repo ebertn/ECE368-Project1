@@ -1,14 +1,18 @@
 #include<stdio.h>
 #include<math.h>
-#include "project1.h"
+#include<project1.h>
 
+<<<<<<< HEAD
 int main(int argc, char *argv[]){
 	
-	if (argc != 2 || argc != 4)
+	(if argc != 2 || argc != 4)
 	{
 		return EXIT_FAILURE;
 	}
+=======
+#include "project1.h"
 
+int main(){
 	// Test queue_pop method
     Task* first = malloc(sizeof(Task));
     first->val = 1;
@@ -36,4 +40,12 @@ int main(int argc, char *argv[]){
 
     free_queue(first);
     free_queue(popped);
+>>>>>>> nick
+
+	Task FEL = NULL;
+
+
+	
+    
+	return EXIT_SUCCESS;
 }
