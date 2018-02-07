@@ -24,6 +24,10 @@ int main(){
     queue_push(&first, popped);
     print_queue(stdout, popped);
 
+    int rand1 = generate_rate(0.5);
+    int rand = generate_rate(0.5);
+    
+    printf("%f ", rand);
 
     free_queue(first);
     free_queue(popped);
