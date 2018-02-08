@@ -60,10 +60,6 @@ void print_task(FILE* fp, Task* list){
 Task* enqueue(Task** pq, Task* new_object){
 	if(new_object == NULL){ return NULL; }
 
-	// Task *new_task = malloc(sizeof(*new_task));
-	// if(new_task == NULL) { return NULL; }
-	// new_task->ptr = (void*) new_object;
-
 	if(*pq == NULL || compare_tasks(new_object, *pq) <= 0){
 		new_object->next = *pq;
 		*pq = new_object;
@@ -79,11 +75,18 @@ Task* enqueue(Task** pq, Task* new_object){
 }
 
 int compare_tasks(Task* one, Task* two){
-	if(one->priority < two->priority
-	|| one->arrival_time < two->arrival_time){ //Test with same arrival time, different departure times
+	if(one->priority < two->priority){
 		return 1; // 1 = keep going
 	}
+	if(one->priority == two->priority
+	&& one->arrival_time < two->arrival_time){
+		return 1;
+	}
 	return -1; // -1 = stop
+}
+
+int is_empty(Task* list){
+	return list == NULL;
 }
 
 // Frees a linked list

@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 
     fclose(fp);
 
-    printf("=================Generated Queue=======================\n");
+    printf("\n=================Generated Queue=======================\n");
     Task* queue = generate_queue(0.5, 0.7, 1, 20);
 
     print_queue(stdout, queue);
