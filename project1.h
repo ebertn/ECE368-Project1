@@ -28,3 +28,5 @@ Task* generate_queue(double, double, double, int);
 void serve(Task**, int*, int, int*, int*, int*, int*);
 void simulation(Task**);
 int average_qlen(Task**);
+void mode_2(char**);
+void mode_1(char**);

@@ -21,6 +21,27 @@ void read_input(FILE *fp, Task **queue){
 	}
 }
 
+void mode_2(char *argv[]) {
+    FILE* fp = fopen(argv[1], "r");
+	Task* head = NULL;
+	//read in file and create queue
+	read_input(fp, &head);
+    //print_queue(stdout, head);
+    fclose(fp);
+
+    simulation(&head);
+}
+
+void mode_1(char *argv[]){
+	double lam0 = atof(argv[1]); //first arrival time
+	double lam1 = atof(argv[2]);//arrivl time
+	double mu = atof(argv[3]); //service time
+	int num_tasks = atoi(argv[4]);//number of tasks to be performed for both 1's and 0's
+	Task *head = generate_queue(lam0,lam1,mu, num_tasks); //generates both queues
+
+    simulation(&head);
+}
+
 Task* generate_queue(double lam0, double lam1, double mu, int num){
     Task* queue = NULL;
 
@@ -65,22 +86,18 @@ void simulation(Task** pre_queue){
     int num0 = 0, num1 = 0;
     int sum0 = 0, sum1 = 0;
     int qlen_sum = 0;
-    int cpu_util;
+    int cpu_util = 0;
     Task* post_queue = NULL;
     int service_finished_time = 0;
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
         Task* next = NULL; //queue_pop(pre_queue);
 
-        printf("t = %d, serv_t = %d\n", t, service_finished_time);
-
         while(get_head(pre_queue) != NULL && get_head(pre_queue)->arrival_time <= t){
             next = queue_pop(pre_queue);
             enqueue(&post_queue, next, &cmp_post_arrival);
-            print_queue(stdout, post_queue);
         }
 
-        print_queue(stdout, post_queue);
         serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
 
         cpu_util += service_finished_time <= t;
@@ -96,26 +113,26 @@ void simulation(Task** pre_queue){
     double av_wait0 = sum0 / ((double) num0);
     double av_wait1 = sum1 / ((double) num1);
 
-    printf("Av wait0 = %f\n", av_wait0);
-    printf("Av wait1 = %f\n", av_wait1);
+    printf("average_wait_0 = %lf\n", av_wait0);
+	printf("average_wait_1 = %lf\n", av_wait1);
+
+
+    //printf("Av wait0 = %lf\n", av_wait0);
+    //printf("Av wait1 = %lf\n", av_wait1);
 
     // Calculate average queue length
     double av_qlen = qlen_sum / ((double) t);
 
-    printf("Av qlen = %f\n", av_qlen);
+    //printf("Av qlen = %lf\n", av_qlen);
+
+    printf("average_queue_length = %lf\n", av_qlen);
 
     // Calculate cpu utilization
-    double av_cpu_util = 1 - cpu_util/ ((double) t);
+    double av_cpu_util = 1 - cpu_util / ((double) t);
 
-    printf("Av cpu util = %f\n", av_cpu_util);
+    //printf("Av cpu util = %lf\n", av_cpu_util);
 
-    printf("Pre Queue:\n");
-    print_queue(stdout, *pre_queue);
-
-    printf("Post Queue:\n");
-    print_queue(stdout, post_queue);
-
-    printf("\nFinish t = %d", t);
+    printf("average_CPU_utilization = %lf\n", av_cpu_util);
 }
 
 void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
@@ -124,13 +141,8 @@ void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int*
     if(*service_finished_time <= t){ // Server isn't busy
         if(!is_empty(*post_queue)){ // Queue isn't empty
 
-            // When the server will finished serving
-            //*service_finished_time = t + get_head(post_queue)->service_time;
-
             // Pop and free next task
             Task* served_task = queue_pop(post_queue);
-
-            printf("%d", served_task->service_time);
 
             //When the server will finished serving
             *service_finished_time = t + served_task->service_time;
@@ -144,9 +156,6 @@ void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int*
                         *sum1 += t - served_task->arrival_time;
                         break;
             }
-
-            printf("Serve: ");
-            print_queue(stdout, served_task);
             free(served_task);
         }
     }

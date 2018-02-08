@@ -31,7 +31,6 @@ Task* queue_pop(Task **queue){
 	Task* prev;
 	Task* cur = *queue;
 	while(cur->next != NULL){
-		printf("Howdy");
 		prev = cur;
 		cur = cur->next;
 	}

@@ -4,46 +4,12 @@
 #include "project1.h"
 
 int main(int argc, char** argv){
-	// // Test queue_pop method
-    // Task* first = malloc(sizeof(Task));
-    // first->priority = 1;
-    // Task* second = malloc(sizeof(Task));
-    // second->priority = 0;
-    // Task* third = malloc(sizeof(Task));
-    // third->priority = 1;
-    //
-    // Task* list = NULL;
-    //
-    // // enqueue(&list, first);
-    // // print_queue(stdout, list);
-    // // enqueue(&list, second);
-    // // print_queue(stdout, list);
-    // // enqueue(&list, third);
-    //
-    // print_queue(stdout, list);
-    //
-    // int rand1 = generate_rate(0.5);
-    //
-    // for(int i = 0; i < 1; i++){
-    //     int rand = generate_rate(0.001);
-    //
-    //     printf("\n%d\n", rand);
-    // }
-    //
-    // free_queue(list);
-    //
-    //Test reading file and creating queue
-    FILE* fp = fopen(argv[1], "r");
-	if(fp == NULL){
-		return EXIT_FAILURE;
+	if(argc == 2){
+		mode_2(argv);
 	}
-	Task* head = NULL;
-	//read in file and create queue
-	read_input(fp, &head);
-    //print_queue(stdout, head);
-    fclose(fp);
-
-    simulation(&head);
+	if(argc == 5){
+		mode_1(argv);
+	}
 
     return EXIT_SUCCESS;
 }
