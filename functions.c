@@ -49,24 +49,34 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
 
 void simulation(Task** pre_queue){
     int t = 0;
+    int num0 = 0, num1 = 0;
+    int sum0 = 0, sum1 = 0;
     Task* post_queue = NULL;
     int service_finished_time = 0;
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
-        Task* next = queue_pop(pre_queue);
+        Task* next = NULL; //queue_pop(pre_queue);
 
-        do {
-            enqueue(&post_queue, next, &cmp_post_arrival);
+        printf("t = %d, serv_t = %d\n", t, service_finished_time);
+
+        while(get_head(pre_queue) != NULL && get_head(pre_queue)->arrival_time <= t){
             next = queue_pop(pre_queue);
+            enqueue(&post_queue, next, &cmp_post_arrival);
             print_queue(stdout, post_queue);
-        } while(next->arrival_time <= t);
+        }
 
-        printf("Outer\n");
-
-        serve(&post_queue, &service_finished_time, t);
+        print_queue(stdout, post_queue);
+        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
 
         t++;
     }
+
+    // Calculate average time in queue
+    double av_wait0 = sum0 / ((double) num0);
+    double av_wait1 = sum1 / ((double) num1);
+
+    printf("Av wait0 = %f", av_wait0);
+    printf("Av wait0 = %f", av_wait1);
 
     printf("Pre Queue:\n");
     print_queue(stdout, *pre_queue);
@@ -77,17 +87,36 @@ void simulation(Task** pre_queue){
     printf("\nFinish t = %d", t);
 }
 
-void serve(Task** post_queue, int* service_finished_time, int t){
+void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
 
-    if(*service_finished_time = t){ // Server isn't busy
+
+    if(*service_finished_time <= t){ // Server isn't busy
         if(!is_empty(*post_queue)){ // Queue isn't empty
 
             // When the server will finished serving
-            *service_finished_time = t + (*post_queue)->service_time;
+            //*service_finished_time = t + get_head(post_queue)->service_time;
 
             // Pop and free next task
             Task* served_task = queue_pop(post_queue);
-            free_queue(served_task);
+
+            printf("%d", served_task->service_time);
+
+            //When the server will finished serving
+            *service_finished_time = t + served_task->service_time;
+
+            //Sum time in queue, to find average
+            switch(served_task->priority){
+                case 0: (*num0)++;
+                        *sum0 += t - served_task->arrival_time;
+                        break;
+                case 1: (*num1)++;
+                        *sum1 += t - served_task->arrival_time;
+                        break;
+            }
+
+            printf("Serve: ");
+            print_queue(stdout, served_task);
+            free(served_task);
         }
     }
 }

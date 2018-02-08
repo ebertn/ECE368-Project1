@@ -22,16 +22,35 @@ Task* queue_pop(Task **queue){
 	if(*queue == NULL){
 		return NULL;
 	}
+	if((*queue)->next == NULL){
+		Task* end = (*queue);
+		*queue = NULL;
+		return end;
+	}
 
 	Task* prev;
 	Task* cur = *queue;
 	while(cur->next != NULL){
+		printf("Howdy");
 		prev = cur;
 		cur = cur->next;
 	}
 	prev->next = NULL;
 	return cur;
 
+}
+
+// Returns the address to the last element in the queue
+Task* get_head(Task **queue){ // From a fat chick
+	if(*queue == NULL){
+		return NULL;
+	}
+
+	Task* cur = *queue;
+	while(cur->next != NULL){
+		cur = cur->next;
+	}
+	return cur;
 }
 
 // Print a queue of Tasks
@@ -44,7 +63,7 @@ void print_queue(FILE* fp, Task* list){
 		list = list->next;
 	}
 	// print NULL and a newline after that
-	fprintf(fp, "NULL\n\n");
+	fprintf(fp, "NULL\n");
 }
 
 // Prints a single Task

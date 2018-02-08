@@ -45,16 +45,5 @@ int main(int argc, char** argv){
 
     simulation(&head);
 
-    //free_queue(head);
-
-
-    //
-    // printf("\n=================Generated Queue=======================\n");
-    // Task* queue = generate_queue(0.5, 0.7, 1, 20);
-    //
-    // print_queue(stdout, queue);
-    //
-    // free_queue(queue);
-
     return EXIT_SUCCESS;
 }

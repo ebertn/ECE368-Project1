@@ -19,10 +19,11 @@ Task* enqueue(Task**, Task*, int (*cmp_fn)(Task*, Task*));
 int cmp_pre_arrival(Task*, Task*);
 int cmp_post_arrival(Task*, Task*);
 int is_empty(Task*);
+Task* get_head(Task**);
 
 // Functions.c
 int generate_rate(double);
 void read_input(FILE *fp, Task **queue);
 Task* generate_queue(double, double, double, int);
-void serve(Task**, int*, int);
+void serve(Task**, int*, int, int*, int*, int*, int*);
 void simulation(Task**);
