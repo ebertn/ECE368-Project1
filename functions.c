@@ -157,4 +157,23 @@ void print_output(double wait1, double wait0, double ave_qlen, double ave_cpu){
 }
 
 
-				
+
+//running average of qlen ("queue length)
+void average_qlen(int *qlen_sum, Task** post_queue){
+
+	if(*queue == NULL)//queue is empty add zero to the queue
+	{
+		qlen_sum += 0;
+	}
+	else
+	Task * cur = *queue;
+	while(cur->next != NULL)//find the length of the current queue and add that to the current running total
+	{
+		qlen_sum += 1;
+		cur = cur->next;
+	}
+	
+} 
+
+
+	
