@@ -52,8 +52,38 @@ void print_task(FILE* fp, Task* list){
 	if(list == NULL){
 		fprintf(fp, "NULL");
 	} else {
-		fprintf(fp, "%d", list->val); // TODO: Update when we have all the vals in Task struct
+		fprintf(fp, "(%d,%d)", list->arrival_time, list->priority);
 	}
+}
+
+// Inserts a task into a priority queue at the correct location
+Task* enqueue(Task** pq, Task* new_object){
+	if(new_object == NULL){ return NULL; }
+
+	// Task *new_task = malloc(sizeof(*new_task));
+	// if(new_task == NULL) { return NULL; }
+	// new_task->ptr = (void*) new_object;
+
+	if(*pq == NULL || compare_tasks(new_object, *pq) <= 0){
+		new_object->next = *pq;
+		*pq = new_object;
+	} else {
+		Task* cur = *pq;
+		while(cur->next != NULL && compare_tasks(new_object, cur->next) > 0){
+			cur = cur->next;
+		}
+		new_object->next = cur->next;
+		cur->next = new_object;
+	}
+	return new_object;
+}
+
+int compare_tasks(Task* one, Task* two){
+	if(one->priority < two->priority
+	|| one->arrival_time < two->arrival_time){ //Test with same arrival time, different departure times
+		return 1; // 1 = keep going
+	}
+	return -1; // -1 = stop
 }
 
 // Frees a linked list
