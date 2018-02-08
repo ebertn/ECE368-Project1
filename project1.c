@@ -3,8 +3,7 @@
 
 #include "project1.h"
 
-int main(){
-    printf("Started\n");
+int main(int argc, char** argv){
 	// Test queue_pop method
     Task* first = malloc(sizeof(Task));
     first->priority = 1;
@@ -21,23 +20,7 @@ int main(){
     print_queue(stdout, list);
     enqueue(&list, third);
 
-    //enqueue(&first, first);
-    // enqueue(&first, second);
-    // enqueue(&first, third);
-
-    // first->next = second;
-    // second->next = third;
-    // third->next = NULL;
-
-    //print_queue(stdout, *loop);
-
-    //Task* popped = queue_pop(&first);
-
     print_queue(stdout, list);
-    //print_queue(stdout, popped);
-
-    //queue_push(&first, popped);
-    //print_queue(stdout, popped);
 
     int rand1 = generate_rate(0.5);
 
@@ -48,7 +31,25 @@ int main(){
     }
 
     free_queue(list);
-    //free_queue(popped);
 
+    // Test reading file and creating queue
+    FILE* fp = fopen(argv[1], "r");
+	if(fp == NULL){
+		return EXIT_FAILURE;
+	}
+	Task* head = NULL;
+	//read in file and create queue
+	read_input(fp, &head);
+    print_queue(stdout, head);
+
+    fclose(fp);
+
+    printf("=================Generated Queue=======================\n");
+    Task* queue = generate_queue(0.5, 0.7, 1, 20);
+
+    print_queue(stdout, queue);
+
+    free_queue(head);
+    free_queue(queue);
     return EXIT_SUCCESS;
 }

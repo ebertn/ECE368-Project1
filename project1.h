@@ -3,12 +3,12 @@
 #include<math.h>
 
 typedef struct _Task {
-	double arrival_time;
+	int arrival_time;
 	int priority;
-	double service_time;
-	double sim_time;
+	int service_time;
+	int sim_time;
 	struct _Task *next;
-}Task;
+} Task;
 
 // Queue.c
 Task* queue_push(Task**, Task*);
@@ -21,3 +21,5 @@ int compare_tasks(Task*, Task*);
 
 // Functions.c
 int generate_rate(double);
+void read_input(FILE *fp, Task **queue);
+Task* generate_queue(double, double, double, int);
