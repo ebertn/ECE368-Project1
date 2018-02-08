@@ -47,10 +47,25 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     return queue;
 }
 
+//running average of qlen ("queue length)
+int average_qlen(Task** queue){
+	Task* cur = *queue;
+    int sum = 0;
+	while(*queue != NULL && cur->next != NULL)//find the length of the current queue and add that to the current running total
+	{
+		cur = cur->next;
+        sum += 1;
+	}
+
+    return sum;
+}
+
 void simulation(Task** pre_queue){
     int t = 0;
     int num0 = 0, num1 = 0;
     int sum0 = 0, sum1 = 0;
+    int qlen_sum = 0;
+    int cpu_util;
     Task* post_queue = NULL;
     int service_finished_time = 0;
 
@@ -66,7 +81,11 @@ void simulation(Task** pre_queue){
         }
 
         print_queue(stdout, post_queue);
-        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+        cpu_util = serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+
+        if(post_queue != NULL){
+            qlen_sum += average_qlen(&post_queue);
+        }
 
         t++;
     }
@@ -75,8 +94,18 @@ void simulation(Task** pre_queue){
     double av_wait0 = sum0 / ((double) num0);
     double av_wait1 = sum1 / ((double) num1);
 
-    printf("Av wait0 = %f", av_wait0);
-    printf("Av wait0 = %f", av_wait1);
+    printf("Av wait0 = %f\n", av_wait0);
+    printf("Av wait1 = %f\n", av_wait1);
+
+    // Calculate average queue length
+    double av_qlen = qlen_sum / ((double) t);
+
+    printf("Av qlen = %f\n", av_qlen);
+
+    // Calculate cpu utilization
+    double av_cpu_util = 1 - cpu_util / ((double) t);
+
+    printf("Av cpu util = %f\n", av_cpu_util);
 
     printf("Pre Queue:\n");
     print_queue(stdout, *pre_queue);
@@ -87,8 +116,8 @@ void simulation(Task** pre_queue){
     printf("\nFinish t = %d", t);
 }
 
-void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
-
+int serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
+    int cpu_util = 0;
 
     if(*service_finished_time <= t){ // Server isn't busy
         if(!is_empty(*post_queue)){ // Queue isn't empty
@@ -117,6 +146,9 @@ void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int*
             printf("Serve: ");
             print_queue(stdout, served_task);
             free(served_task);
+
+            cpu_util += 1;
         }
     }
+    return cpu_util;
 }
