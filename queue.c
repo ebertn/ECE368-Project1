@@ -41,7 +41,7 @@ Task* queue_pop(Task **queue){
 }
 
 // Returns the address to the last element in the queue
-Task* get_head(Task **queue){ // From a fat chick
+Task* get_head(Task **queue){
 	if(*queue == NULL){
 		return NULL;
 	}

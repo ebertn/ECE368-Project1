@@ -51,7 +51,7 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
 int average_qlen(Task** queue){
 	Task* cur = *queue;
     int sum = 0;
-	while(*queue != NULL && cur->next != NULL)//find the length of the current queue and add that to the current running total
+	while(cur != NULL)// && cur->next != NULL)//find the length of the current queue and add that to the current running total
 	{
 		cur = cur->next;
         sum += 1;
@@ -81,7 +81,9 @@ void simulation(Task** pre_queue){
         }
 
         print_queue(stdout, post_queue);
-        cpu_util = serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+
+        cpu_util += service_finished_time <= t;
 
         if(post_queue != NULL){
             qlen_sum += average_qlen(&post_queue);
@@ -103,7 +105,7 @@ void simulation(Task** pre_queue){
     printf("Av qlen = %f\n", av_qlen);
 
     // Calculate cpu utilization
-    double av_cpu_util = 1 - cpu_util / ((double) t);
+    double av_cpu_util = 1 - cpu_util/ ((double) t);
 
     printf("Av cpu util = %f\n", av_cpu_util);
 
@@ -116,7 +118,7 @@ void simulation(Task** pre_queue){
     printf("\nFinish t = %d", t);
 }
 
-int serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
+void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
     int cpu_util = 0;
 
     if(*service_finished_time <= t){ // Server isn't busy
@@ -146,9 +148,6 @@ int serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* 
             printf("Serve: ");
             print_queue(stdout, served_task);
             free(served_task);
-
-            cpu_util += 1;
         }
     }
-    return cpu_util;
 }
