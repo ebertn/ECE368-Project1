@@ -44,7 +44,7 @@ void print_queue(FILE* fp, Task* list){
 		list = list->next;
 	}
 	// print NULL and a newline after that
-	fprintf(fp, "NULL\n");
+	fprintf(fp, "NULL\n\n");
 }
 
 // Prints a single Task
@@ -52,20 +52,22 @@ void print_task(FILE* fp, Task* list){
 	if(list == NULL){
 		fprintf(fp, "NULL");
 	} else {
-		fprintf(fp, "(%d,%d)", list->arrival_time, list->priority);
+		fprintf(fp, "(%d,%d,%d)", list->arrival_time, list->priority, list->service_time);
 	}
 }
 
 // Inserts a task into a priority queue at the correct location
-Task* enqueue(Task** pq, Task* new_object){
+Task* enqueue(Task** pq, Task* new_object, int (*cmp_fn)(Task*, Task*)){
 	if(new_object == NULL){ return NULL; }
 
-	if(*pq == NULL || compare_tasks(new_object, *pq) <= 0){
+	//print_queue(stdout, *pq);
+
+	if(*pq == NULL || (*cmp_fn)(new_object, *pq) <= 0){//compare_tasks(new_object, *pq) <= 0){
 		new_object->next = *pq;
 		*pq = new_object;
 	} else {
 		Task* cur = *pq;
-		while(cur->next != NULL && compare_tasks(new_object, cur->next) > 0){
+		while(cur->next != NULL && (*cmp_fn)(new_object, cur->next) > 0){//compare_tasks(new_object, cur->next) > 0){
 			cur = cur->next;
 		}
 		new_object->next = cur->next;
@@ -74,13 +76,24 @@ Task* enqueue(Task** pq, Task* new_object){
 	return new_object;
 }
 
-int compare_tasks(Task* one, Task* two){
+int cmp_post_arrival(Task* one, Task* two){
 	if(one->priority < two->priority){
 		return 1; // 1 = keep going
 	}
 	if(one->priority == two->priority
 	&& one->arrival_time < two->arrival_time){
 		return 1;
+	}
+	return -1; // -1 = stop
+}
+
+int cmp_pre_arrival(Task* one, Task* two){
+	if(one->arrival_time < two->arrival_time){
+		return 1; // 1 = keep going
+	}
+	if(one->arrival_time == two->arrival_time
+	&& one->priority < two->priority){
+		// return 1;
 	}
 	return -1; // -1 = stop
 }
