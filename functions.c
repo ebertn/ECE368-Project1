@@ -51,7 +51,8 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	if(new_task == NULL) { return NULL; }
     	new_task->arrival_time = generate_rate(lam0);
         new_task->priority = 0;
-        new_task->service_time = generate_rate(mu);
+        //new_task->service_time = generate_rate(mu);
+        new_task->num_subtasks = generate_subtasks(mu, new_task->subtasks);
         enqueue(&queue, new_task, &cmp_pre_arrival);
     }
 
@@ -61,11 +62,22 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	if(new_task == NULL) { return NULL; }
     	new_task->arrival_time = generate_rate(lam1);
         new_task->priority = 1;
-        new_task->service_time = generate_rate(mu);
+        //new_task->service_time = generate_rate(mu);
+        new_task->num_subtasks = generate_subtasks(mu, new_task->subtasks);
         enqueue(&queue, new_task, &cmp_pre_arrival);
     }
 
     return queue;
+}
+
+int generate_subtasks(double mu, int* subtasks){
+    int num_subtasks = rand() % 32 + 1;
+
+    for(int i = 0; i < num_subtasks; i++){
+        subtasks[i] = generate_rate(mu);
+    }
+
+    return num_subtasks;
 }
 
 //running average of qlen ("queue length)
@@ -81,6 +93,11 @@ int average_qlen(Task** queue){
     return sum;
 }
 
+int num_avaliable_servers(int* service_finished_times){
+    // TODO: Write this
+}
+
+// Controller for the simulation
 void simulation(Task** pre_queue){
     int t = 0;
     int num0 = 0, num1 = 0;
@@ -88,7 +105,8 @@ void simulation(Task** pre_queue){
     int qlen_sum = 0;
     int cpu_util = 0;
     Task* post_queue = NULL;
-    int service_finished_time = 0;
+    //int service_finished_time = 0;
+    int[64] service_finished_times = {0};
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
         Task* next = NULL; //queue_pop(pre_queue);
@@ -98,9 +116,9 @@ void simulation(Task** pre_queue){
             enqueue(&post_queue, next, &cmp_post_arrival);
         }
 
-        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+        serve(&post_queue, service_finished_times, t, &sum0, &sum1, &num0, &num1);
 
-        cpu_util += service_finished_time <= t;
+        cpu_util += service_finished_time <= t; // TODO: baby come back
 
         if(post_queue != NULL){
             qlen_sum += average_qlen(&post_queue);

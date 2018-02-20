@@ -6,6 +6,9 @@ typedef struct _Task {
 	int arrival_time;
 	int priority;
 	int service_time;
+	int[32] subtasks;
+	int num_subtasks;
+
 	struct _Task *next;
 } Task;
 
