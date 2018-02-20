@@ -1,73 +1,6 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <math.h>
 #include "project1.h"
-#include <stdlib.h>
-
-// File for our functions
-
-Task *queue_push(Task** queue, Task* new_task)
-{
-        if(new_task == NULL)
-        {
-                return NULL;
-        }
-
-        new_task->next = *queue;
-        *queue = new_task;
-
-        return new_task;
-}
-
-
-void print_task(FILE* fp, Task* list){
-	if(list == NULL){
-		fprintf(fp, "NULL");
-	} else {
-		fprintf(fp, "(%d, %d)", list->arrival_time, list -> priority); // TODO: Update when we have all the vals in Task struct
-	}
-}
-
-
-void print_queue(FILE* fp, Task* list){
-	while (list != NULL) {
-		print_task(fp, list);
-		fprintf(fp, "->" );
-		list = list->next;
-	}
-	fprintf(fp, "NULL\n");
-}
-
-void free_queue(Task *queue){
-	Task* temp;
-	while(queue != NULL){
-		temp = queue;
-		queue = queue->next;
-		free(temp);
-	}
-	return;
-}
-int compare_tasks(Task* one, Task* two){
-	if(one->priority <= two->priority){
-		return 1;
-	}
-	return -1;
-}
-//place queue nodes in correct positions 	
-Task* enqueue(Task** pq, Task* new_object){
-	if(new_object == NULL){ return NULL; }
-	if(*pq == NULL || compare_tasks(new_object, *pq) <= 0){
-		new_object->next = *pq;
-		*pq = new_object;
-	} else {
-		Task* cur = *pq;
-		while(cur->next != NULL && compare_tasks(new_object, cur->next) > 0){
-			cur = cur->next;
-		}
-		new_object->next = cur->next;
-		cur->next = new_object;
-	}
-	return new_object;
-}
 
 int generate_rate(double inputRate)// inputRate is either lambda or Mu
 {
@@ -77,14 +10,34 @@ int generate_rate(double inputRate)// inputRate is either lambda or Mu
   return ceil((-1/ inputRate) * log(1-unit_rand));         //This is similar to slide 10 in Week 3 notes
 }
 
-//mode 2 input file function 
 void read_input(FILE *fp, Task **queue){
 	fseek(fp, 0L, SEEK_SET);//file starts at the beginning;
 	while(!feof(fp)){
 		Task *new_task = malloc(sizeof(*new_task));//get memory for new task node
 		fscanf(fp,"%d %d %d ", &(new_task -> arrival_time), &(new_task -> priority), &(new_task -> service_time));//, &(new_task -> priority), &(new_task -> service_time));//scan in data
-		enqueue(queue, new_task);//push new task node onto the queue
+		enqueue(queue, new_task, &cmp_pre_arrival);//push new task node onto the queue
 	}
+}
+
+void mode_2(char *argv[]) {
+    FILE* fp = fopen(argv[1], "r");
+	Task* head = NULL;
+	//read in file and create queue
+	read_input(fp, &head);
+    //print_queue(stdout, head);
+    fclose(fp);
+
+    simulation(&head);
+}
+
+void mode_1(char *argv[]){
+	double lam0 = atof(argv[1]); //first arrival time
+	double lam1 = atof(argv[2]);//arrivl time
+	double mu = atof(argv[3]); //service time
+	int num_tasks = atoi(argv[4]);//number of tasks to be performed for both 1's and 0's
+	Task *head = generate_queue(lam0,lam1,mu, num_tasks); //generates both queues
+
+    simulation(&head);
 }
 
 Task* generate_queue(double lam0, double lam1, double mu, int num){
@@ -96,9 +49,8 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	new_task->arrival_time = generate_rate(lam0);
         new_task->priority = 0;
         new_task->service_time = generate_rate(mu);
-        enqueue(&queue, new_task);
+        enqueue(&queue, new_task, &cmp_pre_arrival);
     }
-
     // Generate 1s
     for(int i = 0; i < num; i++){
         Task *new_task = malloc(sizeof(*new_task));
@@ -106,74 +58,84 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	new_task->arrival_time = generate_rate(lam1);
         new_task->priority = 1;
         new_task->service_time = generate_rate(mu);
-        enqueue(&queue, new_task);
+        enqueue(&queue, new_task, &cmp_pre_arrival);
     }
 
     return queue;
 }
 
-void mode_2(char *argv[]) {	
-                
-	FILE* fp = fopen(argv[1], "r"); //input file open for reading 
-       	Task* head = NULL;//queue header
-    	read_input(fp, &head);
-       	print_queue(stdout, head);
-       	fclose(fp);
-        free_queue(head);
-}  	
-
-void mode_1(char *argv[]){
-	double lam0 = atof(argv[1]); //first arrival time
-	double lam1 = atof(argv[2]);//arrivl time 
-	double mu = atof(argv[3]); //service time
-	int num_tasks = atoi(argv[4]);//number of tasks to be performed for both 1's and 0's
-	Task *queue = generate_queue(lam0,lam1,mu, num_tasks); //generates both queues
-	print_queue(stdout, queue);
-	free_queue(queue);
-}
-	
-Task* queue_pop(Task **queue){
-	if(*queue == NULL){
-		return NULL;
-	}
-
-	Task* prev;
-	Task* cur = *queue;
-	while(cur->next != NULL){
-		prev = cur;
-		cur = cur->next;
-	}
-	prev->next = NULL;
-	return cur;
-
-}
-
-
-void print_output(double wait1, double wait0, double ave_qlen, double ave_cpu){
-	printf("\naverage_wait_0 = %lf\n",wait0);
-	printf("average_wait_1 = %lf\n", wait1);
-	printf("average_queue_length = %lf\n", ave_qlen);
-	printf("average_CPU_utilization = %lf\n", ave_cpu);
-}
-
-
-
 //running average of qlen ("queue length)
-void average_qlen(int *qlen_sum, Task** post_queue){
-
-	if(*queue == NULL)//queue is empty add zero to the queue
+int average_qlen(Task** queue){
+	Task* cur = *queue;
+    int sum = 0;
+	while(cur != NULL)// && cur->next != NULL)//find the length of the current queue and add that to the current running total
 	{
-		qlen_sum += 0;
-	}
-	else
-	Task * cur = *queue;
-	while(cur->next != NULL)//find the length of the current queue and add that to the current running total
-	{
-		qlen_sum += 1;
 		cur = cur->next;
+        sum += 1;
 	}
-	
-} 
 
+    return sum;
+}
 
-	
+void simulation(Task** pre_queue){
+    int t = 0;
+    int num0 = 0, num1 = 0;
+    int sum0 = 0, sum1 = 0;
+    int qlen_sum = 0;
+    int cpu_util = 0;
+    Task* post_queue = NULL;
+    int service_finished_time = 0;
+    while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
+        Task* next = NULL; //queue_pop(pre_queue);
+        while(get_head(pre_queue) != NULL && get_head(pre_queue)->arrival_time <= t){
+            next = queue_pop(pre_queue);
+            enqueue(&post_queue, next, &cmp_post_arrival);
+        }
+        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+        cpu_util += service_finished_time <= t;
+        if(post_queue != NULL){
+            qlen_sum += average_qlen(&post_queue);
+        }
+        t++;
+    }
+    // Calculate average time in queue
+    double av_wait0 = sum0 / ((double) num0);
+    double av_wait1 = sum1 / ((double) num1);
+    printf("average_wait_0 = %lf\n", av_wait0);
+	printf("average_wait_1 = %lf\n", av_wait1);
+    //printf("Av wait0 = %lf\n", av_wait0);
+    //printf("Av wait1 = %lf\n", av_wait1);
+    // Calculate average queue length
+    double av_qlen = qlen_sum / ((double) t);
+    //printf("Av qlen = %lf\n", av_qlen);
+    printf("average_queue_length = %lf\n", av_qlen);
+    // Calculate cpu utilization
+    double av_cpu_util = 1 - cpu_util / ((double) t);
+    //printf("Av cpu util = %lf\n", av_cpu_util);
+
+    printf("average_CPU_utilization = %lf\n", av_cpu_util);
+}
+
+void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
+    int cpu_util = 0;
+    if(*service_finished_time <= t){ // Server isn't busy
+        if(!is_empty(*post_queue)){ // Queue isn't empty
+
+            // Pop and free next task
+            Task* served_task = queue_pop(post_queue);
+            //When the server will finished serving
+            *service_finished_time = t + served_task->service_time;
+
+            //Sum time in queue, to find average
+            switch(served_task->priority){
+                case 0: (*num0)++;
+                        *sum0 += t - served_task->arrival_time;
+                        break;
+                case 1: (*num1)++;
+                        *sum1 += t - served_task->arrival_time;
+                        break;
+            }
+            free(served_task);
+        }
+    }
+}

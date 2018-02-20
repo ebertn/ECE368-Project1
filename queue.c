@@ -22,6 +22,11 @@ Task* queue_pop(Task **queue){
 	if(*queue == NULL){
 		return NULL;
 	}
+	if((*queue)->next == NULL){
+		Task* end = (*queue);
+		*queue = NULL;
+		return end;
+	}
 
 	Task* prev;
 	Task* cur = *queue;
@@ -32,6 +37,19 @@ Task* queue_pop(Task **queue){
 	prev->next = NULL;
 	return cur;
 
+}
+
+// Returns the address to the last element in the queue
+Task* get_head(Task **queue){
+	if(*queue == NULL){
+		return NULL;
+	}
+
+	Task* cur = *queue;
+	while(cur->next != NULL){
+		cur = cur->next;
+	}
+	return cur;
 }
 
 // Print a queue of Tasks
@@ -52,24 +70,22 @@ void print_task(FILE* fp, Task* list){
 	if(list == NULL){
 		fprintf(fp, "NULL");
 	} else {
-		fprintf(fp, "(%d,%d)", list->arrival_time, list->priority);
+		fprintf(fp, "(%d,%d,%d)", list->arrival_time, list->priority, list->service_time);
 	}
 }
 
 // Inserts a task into a priority queue at the correct location
-Task* enqueue(Task** pq, Task* new_object){
+Task* enqueue(Task** pq, Task* new_object, int (*cmp_fn)(Task*, Task*)){
 	if(new_object == NULL){ return NULL; }
 
-	// Task *new_task = malloc(sizeof(*new_task));
-	// if(new_task == NULL) { return NULL; }
-	// new_task->ptr = (void*) new_object;
+	//print_queue(stdout, *pq);
 
-	if(*pq == NULL || compare_tasks(new_object, *pq) <= 0){
+	if(*pq == NULL || (*cmp_fn)(new_object, *pq) <= 0){//compare_tasks(new_object, *pq) <= 0){
 		new_object->next = *pq;
 		*pq = new_object;
 	} else {
 		Task* cur = *pq;
-		while(cur->next != NULL && compare_tasks(new_object, cur->next) > 0){
+		while(cur->next != NULL && (*cmp_fn)(new_object, cur->next) > 0){//compare_tasks(new_object, cur->next) > 0){
 			cur = cur->next;
 		}
 		new_object->next = cur->next;
@@ -78,12 +94,30 @@ Task* enqueue(Task** pq, Task* new_object){
 	return new_object;
 }
 
-int compare_tasks(Task* one, Task* two){
-	if(one->priority < two->priority
-	|| one->arrival_time < two->arrival_time){ //Test with same arrival time, different departure times
+int cmp_post_arrival(Task* one, Task* two){
+	if(one->priority < two->priority){
 		return 1; // 1 = keep going
 	}
+	if(one->priority == two->priority
+	&& one->arrival_time < two->arrival_time){
+		return 1;
+	}
 	return -1; // -1 = stop
+}
+
+int cmp_pre_arrival(Task* one, Task* two){
+	if(one->arrival_time < two->arrival_time){
+		return 1; // 1 = keep going
+	}
+	if(one->arrival_time == two->arrival_time
+	&& one->priority < two->priority){
+		// return 1;
+	}
+	return -1; // -1 = stop
+}
+
+int is_empty(Task* list){
+	return list == NULL;
 }
 
 // Frees a linked list
