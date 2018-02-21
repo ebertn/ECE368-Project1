@@ -5,8 +5,11 @@ typedef struct _Task {
 	int arrival_time;
 	int priority;
 	int service_time;
+	int subtasks[32];
+	int num_subtasks;
 	struct _Task *next;
 } Task;
+
 
 // Queue.c
 Task* queue_push(Task**, Task*);
@@ -28,3 +31,6 @@ void simulation(Task**);
 int average_qlen(Task**);
 void mode_2(char**);
 void mode_1(char**);
+void write_output(double, double, double, double, double);
+void MuMinMax(int, int*, int*);
+

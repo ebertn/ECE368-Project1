@@ -14,10 +14,24 @@ void read_input(FILE *fp, Task **queue){
 	fseek(fp, 0L, SEEK_SET);//file starts at the beginning;
 	while(!feof(fp)){
 		Task *new_task = malloc(sizeof(*new_task));//get memory for new task node
-		fscanf(fp,"%d %d %d ", &(new_task -> arrival_time), &(new_task -> priority), &(new_task -> service_time));//, &(new_task -> priority), &(new_task -> service_time));//scan in data
+		fscanf(fp,"%d %d %d ", &(new_task -> arrival_time), &(new_task -> priority), &(new_task ->num_subtasks));//, &(new_task -> priority), &(new_task -> service_time));//scan in data
+		for(int i = 0; i < (new_task -> num_subtasks); i++){
+			fscanf(fp,"%d", &(new_task -> subtasks[i]));
+		}			
 		enqueue(queue, new_task, &cmp_pre_arrival);//push new task node onto the queue
 	}
 }
+
+int generate_subtasks(double mu, int* subtasks){
+    int num_subtasks = rand() % 32 + 1;
+
+    for(int i = 0; i < num_subtasks; i++){
+        subtasks[i] = generate_rate(mu);
+    }
+
+    return num_subtasks;
+}
+
 
 void mode_2(char *argv[]) {
     FILE* fp = fopen(argv[1], "r");
@@ -139,3 +153,23 @@ void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int*
         }
     }
 }
+
+void MuMinMax(int MuNow, int *MuMin, int *MuMax){
+
+                int mm = *MuMin;
+                int MM = *MuMax;
+                if(MuNow < (mm)){
+                        *MuMin = MuNow;
+                }
+
+                if(MuNow > (MM)){
+                        *MuMax = MuNow;
+                }
+}
+
+void write_output(double a_wait0, double a_wait1, double a_queuelen, double a_util, double a_loadbalance){
+        FILE *fp = fopen("proj1_output.txt", "w");
+        fprintf(fp,"%lf\n%lf\n%lf\n%lf\n%lf\n", a_wait0, a_wait1, a_queuelen, a_util, a_loadbalance);
+        fclose(fp);
+}
+

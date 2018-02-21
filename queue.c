@@ -58,7 +58,7 @@ void print_queue(FILE* fp, Task* list){
 		// print the memory associated with list->ptr
 		print_task(fp, list);
 		// print an arrow
-		fprintf(fp, "->");
+		fprintf(fp, "->\n");
 		list = list->next;
 	}
 	// print NULL and a newline after that
@@ -70,7 +70,11 @@ void print_task(FILE* fp, Task* list){
 	if(list == NULL){
 		fprintf(fp, "NULL");
 	} else {
-		fprintf(fp, "(%d,%d,%d)", list->arrival_time, list->priority, list->service_time);
+		fprintf(fp, "(%d,%d,%d: )", list->arrival_time, list->priority, list->num_subtasks);
+		//uncomment for each subtask duration printout
+		/*for(int i = 0; i < list->num_subtasks; i ++){
+			fprintf(stdout,"%d, ", list -> subtasks[i]);
+		}*/
 	}
 }
 
