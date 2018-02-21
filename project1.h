@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-//const int NUM_SERVERS = 64;
+#define NUM_SERVERS 64
 
 typedef struct _Task {
 	int arrival_time;

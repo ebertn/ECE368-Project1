@@ -93,20 +93,28 @@ int average_qlen(Task** queue){
     return sum;
 }
 
-// // Returns the number of servers avaliable
-// int num_avaliable_servers(int t, int* service_finished_times){
-//     int count = 0;
-//     for(int i = 0; i < NUM_SERVERS; i++){
-//         if(service_finished_times[i] <= t){ // If a server is avaliable
-//             count++;
-//         }
-//     }
-//     return count;
-// }
+// Returns the number of servers avaliable
+int num_avaliable_servers(int t, int* service_finished_times){
+    int count = 0;
+    for(int i = 0; i < NUM_SERVERS; i++){
+        if(service_finished_times[i] <= t){ // If a server is avaliable
+            count++;
+        }
+    }
+    return count;
+}
 
-// Task* find_next_task(Task** pre_queue){
-//
-// }
+// Returns the next eligible task in the queue
+Task* find_next_task(Task** pre_queue, int num_servers){
+    Task* cur = *pre_queue;
+    for(int i = 0; i < NUM_SERVERS; i++){
+        if((*pre_queue)->num_subtasks <= num_servers){
+            return cur;
+        }
+        cur = cur->next;
+    }
+    return NULL;
+}
 
 // Controller for the simulation
 void simulation(Task** pre_queue){
