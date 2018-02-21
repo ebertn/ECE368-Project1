@@ -2,11 +2,13 @@
 #include<stdlib.h>
 #include<math.h>
 
+//const int NUM_SERVERS = 64;
+
 typedef struct _Task {
 	int arrival_time;
 	int priority;
 	int service_time;
-	int[32] subtasks;
+	int subtasks[32];
 	int num_subtasks;
 
 	struct _Task *next;
@@ -33,3 +35,5 @@ void simulation(Task**);
 int average_qlen(Task**);
 void mode_2(char**);
 void mode_1(char**);
+int num_avaliable_servers(int, int*);
+int generate_subtasks(double, int*);

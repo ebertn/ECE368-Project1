@@ -93,9 +93,20 @@ int average_qlen(Task** queue){
     return sum;
 }
 
-int num_avaliable_servers(int* service_finished_times){
-    // TODO: Write this
-}
+// // Returns the number of servers avaliable
+// int num_avaliable_servers(int t, int* service_finished_times){
+//     int count = 0;
+//     for(int i = 0; i < NUM_SERVERS; i++){
+//         if(service_finished_times[i] <= t){ // If a server is avaliable
+//             count++;
+//         }
+//     }
+//     return count;
+// }
+
+// Task* find_next_task(Task** pre_queue){
+//
+// }
 
 // Controller for the simulation
 void simulation(Task** pre_queue){
@@ -105,18 +116,18 @@ void simulation(Task** pre_queue){
     int qlen_sum = 0;
     int cpu_util = 0;
     Task* post_queue = NULL;
-    //int service_finished_time = 0;
-    int[64] service_finished_times = {0};
+    int service_finished_time = 0;
+    //int[64] service_finished_times = {0};
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
         Task* next = NULL; //queue_pop(pre_queue);
 
-        while(get_head(pre_queue) != NULL && get_head(pre_queue)->arrival_time <= t){
+        while(*pre_queue != NULL && (*pre_queue)->arrival_time <= t){
             next = queue_pop(pre_queue);
             enqueue(&post_queue, next, &cmp_post_arrival);
         }
 
-        serve(&post_queue, service_finished_times, t, &sum0, &sum1, &num0, &num1);
+        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
 
         cpu_util += service_finished_time <= t; // TODO: baby come back
 

@@ -17,25 +17,31 @@ Task *queue_push(Task** queue, Task* new_task){
 	return new_task;
 }
 
-// Removes a Task from the end of the list, in FIFO fashion
+// Removes a Task from the beginning of the queue
 Task* queue_pop(Task **queue){
-	if(*queue == NULL){
-		return NULL;
-	}
-	if((*queue)->next == NULL){
-		Task* end = (*queue);
-		*queue = NULL;
-		return end;
-	}
+	// if(*queue == NULL){
+	// 	return NULL;
+	// }
+	// if((*queue)->next == NULL){
+	// 	Task* end = (*queue);
+	// 	*queue = NULL;
+	// 	return end;
+	// }
+	//
+	// Task* prev;
+	// Task* cur = *queue;
+	// while(cur->next != NULL){
+	// 	prev = cur;
+	// 	cur = cur->next;
+	// }
+	// prev->next = NULL;
+	// return cur;
 
-	Task* prev;
-	Task* cur = *queue;
-	while(cur->next != NULL){
-		prev = cur;
-		cur = cur->next;
-	}
-	prev->next = NULL;
-	return cur;
+	if(*queue == NULL) { return NULL; }
+	Task* head = *queue;
+	*queue = (*queue)->next;
+	head->next = NULL;
+	return head;
 
 }
 
@@ -95,24 +101,24 @@ Task* enqueue(Task** pq, Task* new_object, int (*cmp_fn)(Task*, Task*)){
 }
 
 int cmp_post_arrival(Task* one, Task* two){
-	if(one->priority < two->priority){
+	if(one->priority > two->priority){
 		return 1; // 1 = keep going
 	}
 	if(one->priority == two->priority
-	&& one->arrival_time < two->arrival_time){
+	&& one->arrival_time > two->arrival_time){
 		return 1;
 	}
 	return -1; // -1 = stop
 }
 
 int cmp_pre_arrival(Task* one, Task* two){
-	if(one->arrival_time < two->arrival_time){
+	if(one->arrival_time > two->arrival_time){
 		return 1; // 1 = keep going
 	}
-	if(one->arrival_time == two->arrival_time
-	&& one->priority < two->priority){
-		// return 1;
-	}
+	// if(one->arrival_time == two->arrival_time
+	// && one->priority < two->priority){
+	// 	// return 1;
+	// }
 	return -1; // -1 = stop
 }
 
