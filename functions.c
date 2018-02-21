@@ -124,8 +124,8 @@ void simulation(Task** pre_queue){
     int qlen_sum = 0;
     int cpu_util = 0;
     Task* post_queue = NULL;
-    int service_finished_time = 0;
-    //int[64] service_finished_times = {0};
+    //int service_finished_time = 0;
+    int[64] service_finished_times = {0};
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
         Task* next = NULL; //queue_pop(pre_queue);
@@ -135,9 +135,15 @@ void simulation(Task** pre_queue){
             enqueue(&post_queue, next, &cmp_post_arrival);
         }
 
-        serve(&post_queue, &service_finished_time, t, &sum0, &sum1, &num0, &num1);
+        int num_servers = num_avaliable_servers(t, service_finished_times);
 
-        cpu_util += service_finished_time <= t; // TODO: baby come back
+        while(num_servers > 0){
+            Task* next_valid = find_next_task(pre_queue, num_servers);
+            if(next_valid != NULL){ // If there is a valid task
+                serve(next_valid, &service_finished_times, t, &sum0, &sum1, &num0, &num1);
+            }
+        }
+        //cpu_util += service_finished_time <= t; // TODO: baby come back
 
         if(post_queue != NULL){
             qlen_sum += average_qlen(&post_queue);
@@ -153,47 +159,44 @@ void simulation(Task** pre_queue){
     printf("average_wait_0 = %lf\n", av_wait0);
 	printf("average_wait_1 = %lf\n", av_wait1);
 
-
-    //printf("Av wait0 = %lf\n", av_wait0);
-    //printf("Av wait1 = %lf\n", av_wait1);
-
     // Calculate average queue length
     double av_qlen = qlen_sum / ((double) t);
-
-    //printf("Av qlen = %lf\n", av_qlen);
 
     printf("average_queue_length = %lf\n", av_qlen);
 
     // Calculate cpu utilization
     double av_cpu_util = 1 - cpu_util / ((double) t);
 
-    //printf("Av cpu util = %lf\n", av_cpu_util);
-
     printf("average_CPU_utilization = %lf\n", av_cpu_util);
 }
 
-void serve(Task** post_queue, int* service_finished_time, int t, int* sum0, int* sum1, int* num0, int* num1){
+void serve(Task* served_task, int* service_finished_times, int t, int* sum0, int* sum1, int* num0, int* num1){
     int cpu_util = 0;
 
-    if(*service_finished_time <= t){ // Server isn't busy
-        if(!is_empty(*post_queue)){ // Queue isn't empty
+    if(!is_empty(*post_queue)){ // Queue isn't empty
 
-            // Pop and free next task
-            Task* served_task = queue_pop(post_queue);
+        // Pop and free next task
+        //Task* served_task = queue_pop(post_queue);
 
-            //When the server will finished serving
-            *service_finished_time = t + served_task->service_time;
+        int subtask_index = 0; // Running count of subtasks that have been served
 
-            //Sum time in queue, to find average
-            switch(served_task->priority){
-                case 0: (*num0)++;
-                        *sum0 += t - served_task->arrival_time;
-                        break;
-                case 1: (*num1)++;
-                        *sum1 += t - served_task->arrival_time;
-                        break;
+        for(int i = 0; i < NUM_SERVERS; i++){
+            if(service_finished_times[i] <= t){ // If a server is avaliable
+                //When the server will finished serving
+                service_finished_times[i] = t + served_task->subtasks[subtask_index];
+                subtask_index++;
             }
-            free(served_task);
         }
+
+        //Sum time in queue, to find average
+        switch(served_task->priority){
+            case 0: (*num0)++;
+                    *sum0 += t - served_task->arrival_time; // TODO: change to work with subtasks
+                    break;
+            case 1: (*num1)++;
+                    *sum1 += t - served_task->arrival_time;
+                    break;
+        }
+        free(served_task);
     }
 }
