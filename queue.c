@@ -19,43 +19,11 @@ Task *queue_push(Task** queue, Task* new_task){
 
 // Removes a Task from the beginning of the queue
 Task* queue_pop(Task **queue){
-	// if(*queue == NULL){
-	// 	return NULL;
-	// }
-	// if((*queue)->next == NULL){
-	// 	Task* end = (*queue);
-	// 	*queue = NULL;
-	// 	return end;
-	// }
-	//
-	// Task* prev;
-	// Task* cur = *queue;
-	// while(cur->next != NULL){
-	// 	prev = cur;
-	// 	cur = cur->next;
-	// }
-	// prev->next = NULL;
-	// return cur;
-
 	if(*queue == NULL) { return NULL; }
 	Task* head = *queue;
 	*queue = (*queue)->next;
 	head->next = NULL;
 	return head;
-
-}
-
-// Returns the address to the last element in the queue
-Task* get_head(Task **queue){
-	if(*queue == NULL){
-		return NULL;
-	}
-
-	Task* cur = *queue;
-	while(cur->next != NULL){
-		cur = cur->next;
-	}
-	return cur;
 }
 
 // Print a queue of Tasks
@@ -76,7 +44,7 @@ void print_task(FILE* fp, Task* list){
 	if(list == NULL){
 		fprintf(fp, "NULL");
 	} else {
-		fprintf(fp, "(%d,%d,%d)", list->arrival_time, list->priority, list->service_time);
+		fprintf(fp, "(%d,%d)", list->arrival_time, list->priority);
 	}
 }
 

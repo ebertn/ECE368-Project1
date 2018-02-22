@@ -7,7 +7,6 @@
 typedef struct _Task {
 	int arrival_time;
 	int priority;
-	int service_time;
 	int subtasks[32];
 	int num_subtasks;
 
@@ -30,7 +29,7 @@ Task* get_head(Task**);
 int generate_rate(double);
 void read_input(FILE *fp, Task **queue);
 Task* generate_queue(double, double, double, int);
-void serve(Task*, int*, int, int, int*, int*, int*, int*);
+void serve(Task**, int*, int, int*, int*, int*, int*);
 void simulation(Task**);
 int average_qlen(Task**);
 void mode_2(char**);

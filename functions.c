@@ -13,12 +13,21 @@ int generate_rate(double inputRate)// inputRate is either lambda or Mu
 
 void read_input(FILE *fp, Task **queue){
 	fseek(fp, 0L, SEEK_SET);//file starts at the beginning;
-
 	while(!feof(fp)){
 		Task *new_task = malloc(sizeof(*new_task));//get memory for new task node
-		fscanf(fp,"%d %d %d ", &(new_task -> arrival_time), &(new_task -> priority), &(new_task -> service_time));//, &(new_task -> priority), &(new_task -> service_time));//scan in data
+        new_task->num_subtasks = 0;
+        new_task->arrival_time = 0;
+        new_task->priority = 0;
+        //new_task->subtasks = {0};
+		fscanf(fp,"%d %d %d ", &(new_task -> arrival_time), &(new_task -> priority), &(new_task ->num_subtasks));
+		for(int i = 0; i < new_task->num_subtasks; i++){
+			fscanf(fp,"%d ", &(new_task -> subtasks[i]));
+            printf("%d\n", new_task->subtasks[i]);
+		}
+
 		enqueue(queue, new_task, &cmp_pre_arrival);//push new task node onto the queue
 	}
+    print_queue(stdout, *queue);
 }
 
 void mode_2(char *argv[]) {
@@ -51,7 +60,6 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	if(new_task == NULL) { return NULL; }
     	new_task->arrival_time = generate_rate(lam0);
         new_task->priority = 0;
-        //new_task->service_time = generate_rate(mu);
         new_task->num_subtasks = generate_subtasks(mu, new_task->subtasks);
         enqueue(&queue, new_task, &cmp_pre_arrival);
     }
@@ -62,7 +70,6 @@ Task* generate_queue(double lam0, double lam1, double mu, int num){
     	if(new_task == NULL) { return NULL; }
     	new_task->arrival_time = generate_rate(lam1);
         new_task->priority = 1;
-        //new_task->service_time = generate_rate(mu);
         new_task->num_subtasks = generate_subtasks(mu, new_task->subtasks);
         enqueue(&queue, new_task, &cmp_pre_arrival);
     }
@@ -101,16 +108,27 @@ int num_avaliable_servers(int t, int* service_finished_times){
             count++;
         }
     }
+    printf("Num servers: %d\n", count);
     return count;
 }
 
 // Returns the next eligible task in the queue
-Task* find_next_task(Task** pre_queue, int num_servers){
-    Task* cur = *pre_queue;
-    for(int i = 0; i < NUM_SERVERS; i++){
-        if((*pre_queue)->num_subtasks <= num_servers){
+Task* find_next_task(Task** post_queue, int num_servers){
+    if((*post_queue) == NULL){ return NULL; }
+    if((*post_queue)->num_subtasks <= num_servers){
+        return queue_pop(post_queue);
+    }
+    Task* cur = *post_queue;
+    Task* prev = cur;
+    while(cur != NULL){
+        if(cur->num_subtasks <= num_servers){
+            prev->next = cur->next;
+            cur->next = NULL;
+
+            //queue_pop(&cur);
             return cur;
         }
+        prev = cur;
         cur = cur->next;
     }
     return NULL;
@@ -125,9 +143,10 @@ void simulation(Task** pre_queue){
     int cpu_util = 0;
     Task* post_queue = NULL;
     //int service_finished_time = 0;
-    int[64] service_finished_times = {0};
+    int service_finished_times[64] = {0};
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
+        printf("t = %d\n", t);
         Task* next = NULL; //queue_pop(pre_queue);
 
         while(*pre_queue != NULL && (*pre_queue)->arrival_time <= t){
@@ -135,14 +154,10 @@ void simulation(Task** pre_queue){
             enqueue(&post_queue, next, &cmp_post_arrival);
         }
 
-        int num_servers = num_avaliable_servers(t, service_finished_times);
+        printf("Post queue: ");
+        print_queue(stdout, post_queue);
+        serve(&post_queue, service_finished_times, t, &sum0, &sum1, &num0, &num1);
 
-        while(num_servers > 0){
-            Task* next_valid = find_next_task(pre_queue, num_servers);
-            if(next_valid != NULL){ // If there is a valid task
-                serve(next_valid, &service_finished_times, t, &sum0, &sum1, &num0, &num1);
-            }
-        }
         //cpu_util += service_finished_time <= t; // TODO: baby come back
 
         if(post_queue != NULL){
@@ -151,6 +166,8 @@ void simulation(Task** pre_queue){
 
         t++;
     }
+
+    printf("Finish time = %d\n", t);
 
     // Calculate average time in queue
     double av_wait0 = sum0 / ((double) num0);
@@ -170,10 +187,17 @@ void simulation(Task** pre_queue){
     printf("average_CPU_utilization = %lf\n", av_cpu_util);
 }
 
-void serve(Task* served_task, int* service_finished_times, int t, int* sum0, int* sum1, int* num0, int* num1){
-    int cpu_util = 0;
+void serve(Task** post_queue, int* service_finished_times, int t, int* sum0, int* sum1, int* num0, int* num1){
+    printf("------------------------------------\n");
 
-    if(!is_empty(*post_queue)){ // Queue isn't empty
+    int num_servers = num_avaliable_servers(t, service_finished_times);
+    Task* next_valid = NULL;
+    if(num_servers > 0){
+        next_valid = find_next_task(post_queue, num_servers);
+    }
+    while(num_servers > 0 && next_valid != NULL){
+        print_queue(stdout, *post_queue);
+        int cpu_util = 0;
 
         // Pop and free next task
         //Task* served_task = queue_pop(post_queue);
@@ -181,22 +205,27 @@ void serve(Task* served_task, int* service_finished_times, int t, int* sum0, int
         int subtask_index = 0; // Running count of subtasks that have been served
 
         for(int i = 0; i < NUM_SERVERS; i++){
-            if(service_finished_times[i] <= t){ // If a server is avaliable
+            if(service_finished_times[i] <= t && subtask_index < next_valid->num_subtasks){ // If a server is avaliable
                 //When the server will finished serving
-                service_finished_times[i] = t + served_task->subtasks[subtask_index];
+                service_finished_times[i] = t + next_valid->subtasks[subtask_index];
                 subtask_index++;
             }
         }
 
-        //Sum time in queue, to find average
-        switch(served_task->priority){
-            case 0: (*num0)++;
-                    *sum0 += t - served_task->arrival_time; // TODO: change to work with subtasks
-                    break;
-            case 1: (*num1)++;
-                    *sum1 += t - served_task->arrival_time;
-                    break;
-        }
-        free(served_task);
+        printf("----> %d\n", subtask_index);
+
+        // //Sum time in queue, to find average
+        // switch(next_valid->priority){
+        //     case 0: (*num0)++;
+        //             *sum0 += t - served_task->arrival_time; // TODO: change to work with subtasks
+        //             break;
+        //     case 1: (*num1)++;
+        //             *sum1 += t - served_task->arrival_time;
+        //             break;
+        // }
+
+        free(next_valid);
+        num_servers = num_avaliable_servers(t, service_finished_times);
+        next_valid = find_next_task(post_queue, num_servers);
     }
 }
