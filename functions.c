@@ -145,7 +145,7 @@ void simulation(Task** pre_queue){
     //int service_finished_time = 0;
     int service_finished_times[64] = {0};
 
-    while(!is_empty(*pre_queue) || !is_empty(post_queue)){ // There are still tasks
+    while(!is_empty(*pre_queue) || !is_empty(post_queue) || num_avaliable_servers(t, service_finished_times) < 64){ // There are still tasks
         printf("t = %d\n", t);
         Task* next = NULL; //queue_pop(pre_queue);
 
