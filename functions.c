@@ -140,10 +140,10 @@ void simulation(Task** pre_queue){
     int num0 = 0, num1 = 0;
     int sum0 = 0, sum1 = 0;
     int qlen_sum = 0;
-    int cpu_util = 0;
     Task* post_queue = NULL;
     //int service_finished_time = 0;
-    int service_finished_times[64] = {0};
+    int service_finished_times[NUM_SERVERS] = {0};
+    int cpu_util[NUM_SERVERS] = {0};
 
     while(!is_empty(*pre_queue) || !is_empty(post_queue) || num_avaliable_servers(t, service_finished_times) < 64){ // There are still tasks
         printf("t = %d\n", t);
@@ -164,6 +164,12 @@ void simulation(Task** pre_queue){
             qlen_sum += average_qlen(&post_queue);
         }
 
+        for(int i = 0; i < NUM_SERVERS; i++){
+            if(service_finished_times[i] > t){
+                cpu_util[i]++;
+            }
+        }
+
         t++;
     }
 
@@ -177,12 +183,18 @@ void simulation(Task** pre_queue){
 	printf("average_wait_1 = %lf\n", av_wait1);
 
     // Calculate average queue length
-    double av_qlen = qlen_sum / ((double) t);
+    double av_qlen = qlen_sum / ((double) num0+num1);
 
     printf("average_queue_length = %lf\n", av_qlen);
 
     // Calculate cpu utilization
-    double av_cpu_util = 1 - cpu_util / ((double) t);
+
+    double av_cpu_util;
+
+    for(int i = 0; i < NUM_SERVERS; i++){
+        av_cpu_util += cpu_util[i] / t;
+    }
+    av_cpu_util /= NUM_SERVERS;
 
     printf("average_CPU_utilization = %lf\n", av_cpu_util);
 }
@@ -214,15 +226,15 @@ void serve(Task** post_queue, int* service_finished_times, int t, int* sum0, int
 
         printf("----> %d\n", subtask_index);
 
-        // //Sum time in queue, to find average
-        // switch(next_valid->priority){
-        //     case 0: (*num0)++;
-        //             *sum0 += t - served_task->arrival_time; // TODO: change to work with subtasks
-        //             break;
-        //     case 1: (*num1)++;
-        //             *sum1 += t - served_task->arrival_time;
-        //             break;
-        // }
+        //Sum time in queue, to find average
+        switch(next_valid->priority){
+            case 0: (*num0)++;
+                    *sum0 += t - next_valid->arrival_time; // TODO: change to work with subtasks
+                    break;
+            case 1: (*num1)++;
+                    *sum1 += t - next_valid->arrival_time;
+                    break;
+        }
 
         free(next_valid);
         num_servers = num_avaliable_servers(t, service_finished_times);
