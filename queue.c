@@ -52,8 +52,6 @@ void print_task(FILE* fp, Task* list){
 Task* enqueue(Task** pq, Task* new_object, int (*cmp_fn)(Task*, Task*)){
 	if(new_object == NULL){ return NULL; }
 
-	//print_queue(stdout, *pq);
-
 	if(*pq == NULL || (*cmp_fn)(new_object, *pq) <= 0){//compare_tasks(new_object, *pq) <= 0){
 		new_object->next = *pq;
 		*pq = new_object;

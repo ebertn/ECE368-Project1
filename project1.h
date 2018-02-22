@@ -27,12 +27,13 @@ Task* get_head(Task**);
 
 // Functions.c
 int generate_rate(double);
-void read_input(FILE *fp, Task **queue);
+double read_input(FILE *fp, Task **queue);
 Task* generate_queue(double, double, double, int);
-void serve(Task**, int*, int, int*, int*, int*, int*);
-void simulation(Task**);
+void serve(Task**, int*, int, int*, int*, int*, int*, double*, double*, double, double*);
+void simulation(Task**, double);
 int average_qlen(Task**);
 void mode_2(char**);
 void mode_1(char**);
 int num_avaliable_servers(int, int*);
 int generate_subtasks(double, int*);
+void MuMinMax(double, double*, double*);
